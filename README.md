@@ -21,7 +21,7 @@ git clone https://github.com/fititnt/ansible-ad-hoc.git ad-hoc/
 
 ## What do you want to do: ignore or commit the full folder on your repository?
 # If want to ignore, add ad-hoc/ to .gitignore
-echo "ad-hoc/" >> .gitignore
+echo "\n# Ignoring Ansible Ad-Hoc files from https://github.com/fititnt/ansible-ad-hoc \nad-hoc/" >> .gitignore
 
 # If want to commit delete the ad-hoc/.git folder
 rm -r ad-hoc/.git

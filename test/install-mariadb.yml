@@ -1,0 +1,63 @@
+---
+# LICENSE:         Public Domain
+
+#    ansible-playbook test/install-mariadb.yml -i hosts
+#    ansible-playbook test/install-mariadb.yml -i hosts --extra-vars="root_password=PassWord"
+
+- name: "ansible-ad-hoc | TEST | install-mariadb.yml"
+  hosts: all
+  gather_facts: no
+
+  vars_prompt:
+    - name: agree
+      prompt: "DID YOU REALLY WANT APPLY test/install-mariadb.yml: TO {{ ansible_play_hosts }}? (yes)"
+      private: no
+      default: "no"
+    - name: root_password
+      prompt: "Root Password"
+      private: yes
+      confirm: yes
+
+  vars:
+    # Ubuntu 18.04 try to use MariaDB 10.1. This will add a newer version (even if is just for a quick test)
+    mariadb_apt_repository: 'deb [arch=amd64,arm64,ppc64el] http://nyc2.mirrors.digitalocean.com/mariadb/repo/10.4/ubuntu bionic main'
+    mariadb_apt_key_keyserver: 'hkp://keyserver.ubuntu.com:80'
+    mariadb_apt_key_id: '0xF1656F24C74CD1D8'
+    mariadb_packages:
+      - mariadb-server
+      - mariadb-client
+
+  pre_tasks:
+    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | gather_facts minimal"
+      setup:
+        gather_subset:
+          - "!all"
+          #- "!any"
+          #- "!min"
+          #- "min"
+    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | Debian? Ubuntu?"
+      fail:
+        msg: "test/install-mariadb.yml Tested only on Debian based distros [This host: {{ ansible_distribution }}]"
+      when: "ansible_distribution != 'Debian' and ansible_distribution != 'Ubuntu'"
+
+  tasks:
+    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | agree?"
+      fail:
+        msg: "ansible-ad-hoc/test/* are experimental/for testing only. user did not agree, aborting"
+      when: "agree != 'yes' and agree != 'y'"
+    - name: "ansible_facts"
+      debug:
+        msg: "{{ ansible_facts }}"
+    - name: "root_password"
+      debug:
+        msg: "{{ root_password }}"
+
+    # Add specified repository into sources list.
+    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | sudo apt-key adv --recv-keys --keyserver ..."
+      apt_key:
+        keyserver: "{{ mariadb_apt_key_keyserver }}"
+        id: "{{ mariadb_apt_key_id }}"
+
+    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | sudo apt install mariadb-server mariadb-client" 
+      apt:
+        name: "{{ mariadb_packages }}"
