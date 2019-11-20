@@ -1,0 +1,10 @@
+---
+
+# Not implemented
+
+### RHEL/CenOS
+# @see https://serverfault.com/questions/122178/how-can-i-check-from-the-command-line-if-a-reboot-is-required-on-rhel-or-centos
+
+### Debian/Ubuntu
+# @see https://askubuntu.com/questions/164/how-can-i-tell-from-the-command-line-whether-the-machine-requires-a-reboot
+# ls /var/run/reboot-required

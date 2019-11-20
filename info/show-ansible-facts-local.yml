@@ -1,0 +1,25 @@
+---
+# LICENSE:         Public Domain
+
+#    ansible-playbook roles/ap-application-load-balancer/ad-hoc-alb/show-alb-hosts-facts.yml -i hosts.yml
+#    ansible-playbook show-alb-hosts-facts.yml -i hosts.yml
+#    ansible all -m setup -a "filter=ansible_local" -i hosts.yml
+
+# To print facts with this playbook, use:
+#    ansible-playbook show-alb-hosts-facts.yml -i hosts
+
+# To use Ansible Ad Hoc command (does not need this playbook), use
+#    ansible all -m setup -a "filter=ansible_local" -i hosts
+
+- name: "show-ansible-facts-local.yml"
+  hosts: all
+  tasks:
+    - name: "show-ansible-facts-local | "
+      setup:
+        filter: "ansible_local"
+        gather_subset:
+         - '!all'
+         - '!min'
+         - 'facter'
+    - debug:
+        msg: "{{ ansible_facts['ansible_local'] }}"
