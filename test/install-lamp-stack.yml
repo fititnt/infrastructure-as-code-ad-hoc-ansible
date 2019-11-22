@@ -1,0 +1,7 @@
+---
+
+# @TODO: (maybe) create a single script for a test with full LAMP (Linux Apache
+#        MariaDB PHP) for used for simple tests. This may make sense only
+#        after already have installers for Apache and PHPMyAdmin (the
+#        one for MariaDB at this date we already have)
+#        (fititnt, 2019-11-22 01:18 BRT)

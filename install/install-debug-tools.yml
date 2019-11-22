@@ -2,7 +2,7 @@
 # LICENSE:         Public Domain
 
 #    ansible-playbook install/install-debug-tools.yml -i hosts
-#    ansible-playbook install/install-debug-tools.yml -i hosts --extra-vars="agree=yes full=yes"
+#    ansible-playbook install/install-debug-tools.yml -i hosts --extra-vars="agree=yes extra=yes autodetect=yes"
 
 # Based on https://github.com/fititnt/ap-application-load-balancer/blob/master/tasks/devtools/devtools.yml
 
@@ -12,33 +12,54 @@
 
   vars_prompt:
     - name: agree
-      prompt: "Appling install-debug-tools.yml TO {{ ansible_play_hosts }} [Packages: {{ packages_all }}]. This script will autodetect and install ONLY packages related to services installed. Continue? (yes)"
+      prompt: "Appling install-debug-tools.yml TO {{ ansible_play_hosts }} [packages_base: {{ packages_base }}]. Continue? (default: yes)"
       private: no
       default: "yes"
 
-    - name: full
-      prompt: "Apply even extra packages? {{ packages_base_extra }}. (no)"
+    - name: extra
+      prompt: "Did you want EVEN the extra packages? {{ packages_base_extra }}. (default: no)"
       private: no
       default: "no"
 
+    - name: autodetect
+      prompt: "Autodetect more specific tools and install ONLY if their services is present? [{{ packages_autodetect }}] (default: yes)"
+      private: no
+      default: "yes"
+
   vars:
     packages_base:
-      - htop
-      - multitail
+      - package: "net-tools"
+        info: "https://linux.die.net/man/8/netstat"
+      - package: "nmap"
+        info: "https://nmap.org/docs.html"
+      - package: "htop"
+        info: "https://hisham.hm/htop/"
+      - package: "multitail"
+        info: "https://www.vanheusden.com/multitail/"
 
     packages_base_extra:
-      - glances
+      - package: "glances"
+        info: "https://nicolargo.github.io/glances/"
+        will_force_me_to_add_extra_repository: no
+
+    packages_autodetect:
+      haproxy: "{{ packages_haproxy | map(attribute='package') | list }}"
+      mariadb_mysql: "{{ packages_mariadb_mysql | map(attribute='package') | list }}"
 
     packages_haproxy:
-      - hatop
+      - package: "hatop"
+        info: "http://feurix.org/projects/hatop/"
+        will_force_me_to_add_extra_repository: no
 
-    packages_all:
-      packages_base: "{{ packages_base }}"
+    packages_mariadb_mysql:
+      - package: "mysqltuner"
+        info: "http://mysqltuner.com/"
+        will_force_me_to_add_extra_repository: no
 
   pre_tasks:
-    - name: "ansible-ad-hoc | install-debug-tools.yml | agree?"
+    - name: "ansible-ad-hoc | install-debug-tools.yml | agree packages_base?"
       fail:
-        msg: "ansible-ad-hoc/test/* are experimental/for testing only. user did not agree, aborting"
+        msg: "agree packages_base != yes; Aborting."
       when: "agree != 'yes' and agree != 'y'"
 
     - name: "ansible-ad-hoc | install-debug-tools.yml | gather_facts minimal"
@@ -53,15 +74,58 @@
 
   tasks:
 
+    - name: "ansible-ad-hoc | install-debug-tools.yml | sudo apt install {{ packages_base | map(attribute='package') | join(' ') }}"
+      apt:
+        name: "{{ item.package }}"
+      loop: "{{ packages_base }}"
+
+    - name: "ansible-ad-hoc | install-debug-tools.yml | sudo apt install {{ packages_base_extra | map(attribute='package') | join(' ') }}"
+      apt:
+        name: "{{ item.package }}"
+      loop: "{{ packages_base_extra }}"
+      when:
+        - "extra == true"
+
+    - name: "ansible-ad-hoc | install-debug-tools.yml | service mariadb status"
+      shell: service mariadb status
+      ignore_errors: yes
+      changed_when: false
+      args:
+        warn: false
+      register: service_mariadb_status
+
+    - name: "ansible-ad-hoc | install-debug-tools.yml | service mysql status"
+      shell: service mysql status
+      ignore_errors: yes
+      changed_when: false
+      args:
+        warn: false
+      register: service_mysql_status
+
+    - name: "ansible-ad-hoc | install-debug-tools.yml | sudo apt install {{ packages_mariadb_mysql | map(attribute='package') | join(' ') }}"
+      apt:
+        name: "{{ item.package }}"
+      loop: "{{ packages_mariadb_mysql }}"
+      when:
+        - "autodetect == 'yes' or autodetect != 'y'"
+        - "service_mariadb_status.failed != true or service_mysql_status.failed != true"
+
     - name: "ansible-ad-hoc | install-debug-tools.yml | service haproxy status"
       shell: service haproxy status
       ignore_errors: yes
       changed_when: false
+      args:
+        warn: false
       register: service_haproxy_status
 
-#    - name: "ansible-ad-hoc | install-debug-tools.yml | sudo apt install {{ redis_packages }}"
-#      apt:
-#        name: "{{ redis_packages }}"
-#      when:
-#        - "service_haproxy_status.failed != true"
+    - name: "ansible-ad-hoc | install-debug-tools.yml | sudo apt install {{ packages_haproxy | map(attribute='package') | join(' ') }}"
+      apt:
+        name: "{{ item.package }}"
+      loop: "{{ packages_haproxy }}"
+      when:
+        - "autodetect == 'yes' or autodetect != 'y'"
+        - "service_haproxy_status.failed != true"
+
+      # when:
+        #- "service_haproxy_status.failed != true"
         # - "force is not defined and (force != 'yes' and force != 'y')"
