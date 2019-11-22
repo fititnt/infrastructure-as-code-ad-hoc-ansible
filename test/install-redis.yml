@@ -1,0 +1,82 @@
+---
+# LICENSE:         Public Domain
+
+#    ansible-playbook test/install-redis.yml -i hosts
+#    ansible-playbook test/install-redis.yml -i hosts --extra-vars="mariadb_root_password=PassWord"
+
+# If installing manually, check also:
+#   - https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04
+
+# Consider using a dedicated Ansible Role for production usage. Examples:
+#   - https://github.com/DavidWittman/ansible-redis
+#   - https://github.com/geerlingguy/ansible-role-redis
+
+- name: "ansible-ad-hoc | TEST | install-redis.yml"
+  hosts: all
+  gather_facts: no
+
+  vars_prompt:
+    - name: agree
+      prompt: "DID YOU REALLY WANT APPLY test/install-redis.yml: TO {{ ansible_play_hosts }}? (yes)"
+      private: no
+      default: "no"
+    # The variable force=yes is required if we detect service seems to already be installed on past. But we will warn
+    # user only if we detect#
+    #- name: force
+    #  prompt: "Force if already running?"
+    #  private: no
+    #  default: "no"
+
+  vars:
+    redis_packages:
+      - redis-server
+
+  pre_tasks:
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | agree?"
+      fail:
+        msg: "ansible-ad-hoc/test/* are experimental/for testing only. user did not agree, aborting"
+      when: "agree != 'yes' and agree != 'y'"
+
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | gather_facts minimal"
+      setup:
+        gather_subset:
+          - "!all"
+
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | Debian? Ubuntu?"
+      fail:
+        msg: "test/install-redis.yml Tested only on Debian based distros [This host: {{ ansible_distribution }}]"
+      when: "ansible_distribution != 'Debian' and ansible_distribution != 'Ubuntu'"
+
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | service redis-server status"
+      shell: service redis-server status
+      ignore_errors: yes
+      register: redis_status_before
+
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | redis_status_before"
+      debug:
+        msg: "{{ redis_status_before }}"
+
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | Redis Server already installed & no force=yes?"
+      fail:
+        msg: 'Redis Server already installed on this host. Use hidden param force=yes (like --extra-vars="force=yes"). THIS MAY BREAK A WORKING HOST.'
+      when: 
+        - "redis_status_before.failed != true"
+        - "force is not defined and (force != 'yes' and force != 'y')"
+
+    - name: verify redis-server is listening on 6379
+      wait_for: port=6379 timeout=1
+
+  tasks:
+    - name: "ansible_facts"
+      debug:
+        msg: "{{ ansible_facts }}"
+
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | sudo apt install {{ redis_packages }}"
+      apt:
+        name: "{{ redis_packages }}"
+
+#    - name: "ansible-ad-hoc | TEST | install-redis.yml | set mariadb_root_password"
+#      mysql_user:
+#        user: root
+#        password: "{{ mariadb_root_password }}"
+#        host: localhost
