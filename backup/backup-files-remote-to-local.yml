@@ -1,0 +1,86 @@
+---
+# LICENSE:         Public Domain
+
+# NOTE: backup-files-remote-to-local.yml still a draft.
+#       This script still NOT recommended to use (fititnt, 2019-11-22 02:33 BRT)
+
+#    ansible-playbook backup/backup-files-remote-to-local.yml -i hosts
+#    ansible-playbook backup/backup-files-remote-to-local.yml -i hosts --extra-vars="agree=yes extra=yes autodetect=yes"
+
+# @see https://docs.ansible.com/ansible/latest/modules/synchronize_module.html
+
+- name: "ansible-ad-hoc | backup-files-remote-to-local.yml"
+  hosts: all
+  gather_facts: no
+
+  vars_prompt:
+    - name: source_directory
+      prompt: "Appling backup-files-remote-to-local.yml TO {{ ansible_play_hosts }}. Continue? (default: yes)"
+      private: no
+      default: "/var/www/html"
+    #- name: destiny_directory
+    #  prompt: "Appling backup-files-remote-to-local.yml TO {{ ansible_play_hosts }}. Continue? (default: yes)"
+    #  private: no
+    #  default: "/backup/{{ inventory_hostname }}{{ source_directory }}"
+
+  pre_tasks:
+    - name: "ansible-ad-hoc | backup-files-remote-to-local.yml | gather_facts minimal"
+      setup:
+        gather_subset:
+          - "!all"
+
+  tasks:
+    - set_fact:
+       destiny_directory_suggestion: "/backup/{{ inventory_hostname }}{{ source_directory }}"
+
+    - pause:
+        prompt: "ansible-ad-hoc | backup-files-remote-to-local.yml | destiny_directory on localhost? (default {{ destiny_directory_suggestion }})"
+        echo: yes
+      register: destiny_directory
+
+#    - name: "ansible-ad-hoc | backup-files-remote-to-local.yml | destiny_directory is empty?"
+#      fail:
+#        msg: "destiny_directory empty or too short. Aborting. Response was {{ destiny_directory }}"
+#      when:
+#        - "destiny_directory.user_input is undefined or destiny_directory.user_input == ''"
+
+    - set_fact:
+       destiny_directory_result: "{{ destiny_directory_suggestion }}"
+      when:
+        - "destiny_directory.user_input is undefined or destiny_directory.user_input == ''"
+
+    - set_fact:
+       destiny_directory_result: "{{ destiny_directory.user_input }}"
+      when:
+        - "destiny_directory.user_input is not undefined and destiny_directory.user_input != ''"
+
+    - pause:
+        prompt: "ansible-ad-hoc | backup-files-remote-to-local.yml | Are you sure about copy {{ inventory_hostname }}:{{ source_directory }} to localhost:{{ destiny_directory_result }}. Reply yes to continue. (default: no)"
+        echo: yes
+      register: agree
+
+    - name: "Debug: source_directory"
+      debug:
+        msg: "{{ source_directory }}"
+
+    - name: "Debug: destiny_directory"
+      debug:
+        msg: "{{ destiny_directory }}"
+
+    - name: "Debug: destiny_directory"
+      debug:
+        msg: "{{ destiny_directory_result }}"
+
+    - name: "ansible-ad-hoc | backup-files-remote-to-local.yml | agree?"
+      fail:
+        msg: "agree != yes. Aborting. {{ agree }}"
+      when: "agree.user_input != 'yes' and agree.user_input != 'y'"
+
+    # Note: needs fixing. Uses local user (like fititnt@host) not Ansible user (like root@host) to pull de files
+    #       so may fail. Fix this eventually (fititnt, 2019-11-22 02:32 BRT)
+    - name: "ansible-ad-hoc | backup-files-remote-to-local.yml | synchronize pull {{ ansible_play_hosts }}, source_directory { source_directory }} to {{ destiny_directory_result }}"
+      synchronize:
+        mode: pull
+        src: "{{ source_directory }}"
+        dest: "{{ destiny_directory_result }}"
+      delegate_to: localhost
