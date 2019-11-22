@@ -6,11 +6,11 @@
 #    ansible-playbook show-netstat-used-ports.yml -i hosts.yml
 #    ansible all -a "netstat -ntulp" -i hosts.yml
 
-- name: "ad-hoc-alb | show-netstat-used-ports"
+- name: "ansible-ad-hoc | show-ports-open.yml"
   hosts: all
   gather_facts: no
   tasks:
-    - name: "ad-hoc-alb | sudo netstat -ntulp"
+    - name: "ansible-ad-hoc | show-ports-open.yml | sudo netstat -ntulp"
       shell: "netstat -ntulp"
       become: "yes"
       changed_when: false

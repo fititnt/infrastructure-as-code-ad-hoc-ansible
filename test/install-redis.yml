@@ -2,7 +2,6 @@
 # LICENSE:         Public Domain
 
 #    ansible-playbook test/install-redis.yml -i hosts
-#    ansible-playbook test/install-redis.yml -i hosts --extra-vars="mariadb_root_password=PassWord"
 
 # If installing manually, check also:
 #   - https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04
@@ -63,8 +62,8 @@
         - "redis_status_before.failed != true"
         - "force is not defined and (force != 'yes' and force != 'y')"
 
-    - name: verify redis-server is listening on 6379
-      wait_for: port=6379 timeout=1
+    #- name: verify redis-server is listening on 6379
+    #  wait_for: port=6379 timeout=1
 
   tasks:
     - name: "ansible_facts"
@@ -74,6 +73,14 @@
     - name: "ansible-ad-hoc | TEST | install-redis.yml | sudo apt install {{ redis_packages }}"
       apt:
         name: "{{ redis_packages }}"
+
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | /etc/redis/redis.conf"
+      debug:
+        msg: "/etc/redis/redis.conf is the first file you want to customize this installation."
+
+    - name: "ansible-ad-hoc | TEST | install-redis.yml | Good bye message"
+      debug:
+        msg: "install-redis.yml is a simple one-file-script. You can read the source code of this file to get references of Ansible Roles with better options"
 
 #    - name: "ansible-ad-hoc | TEST | install-redis.yml | set mariadb_root_password"
 #      mysql_user:

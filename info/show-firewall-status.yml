@@ -8,11 +8,11 @@
 #    ansible-playbook show-ufw-status.yml -i hosts.yml
 #    ansible all -a "ufw status verbose" -i hosts.yml
 
-- name: "ad-hoc-alb | show-ufw-status"
+- name: "ansible-ad-hoc | show-firewall-status.yml"
   hosts: all
   gather_facts: no
   tasks:
-    - name: "ad-hoc-alb | sudo ufw status verbose"
+    - name: "ansible-ad-hoc | show-firewall-status.yml | sudo ufw status verbose"
       shell: "ufw status verbose"
       become: "yes"
       changed_when: false
