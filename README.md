@@ -7,14 +7,17 @@ Initially based on https://github.com/fititnt/ap-application-load-balancer**
 
 ## How to "install" this collection of Ansible Ad Hoc scripts
 
-### Manually copy each content file from the public page
+Choose **one** of the options. This repository is not one Ansible Role, and
+every script here is one-file-script.
+
+### 1. Manually copy each content file from the public page
 
 - Go to <https://github.com/fititnt/ansible-ad-hoc>
 - Choose what files you want, ignore the others
 - Copy and paste where you want
   - Then just use different paths than `ad-hoc/info/` on your documentation
 
-### Add a copy to a folder called "ad-hoc" on your current project
+### 2. Add a copy to a folder called "ad-hoc" on your current project
 
 ```bash
 git clone https://github.com/fititnt/ansible-ad-hoc.git ad-hoc/
@@ -28,7 +31,7 @@ rm -r ad-hoc/.git
 
 ```
 
-### Clone to ~/.ansible-ad-hoc and symlink to your current project
+### 3. Clone to ~/.ansible-ad-hoc and symlink to your current project
 
 ```bash
 git clone https://github.com/fititnt/ansible-ad-hoc.git ~/.ansible-ad-hoc/

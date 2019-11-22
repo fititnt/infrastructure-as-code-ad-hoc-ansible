@@ -2,7 +2,7 @@
 # LICENSE:         Public Domain
 
 #    ansible-playbook test/install-mariadb.yml -i hosts
-#    ansible-playbook test/install-mariadb.yml -i hosts --extra-vars="root_password=PassWord"
+#    ansible-playbook test/install-mariadb.yml -i hosts --extra-vars="mariadb_root_password=PassWord"
 
 - name: "ansible-ad-hoc | TEST | install-mariadb.yml"
   hosts: all
@@ -13,7 +13,7 @@
       prompt: "DID YOU REALLY WANT APPLY test/install-mariadb.yml: TO {{ ansible_play_hosts }}? (yes)"
       private: no
       default: "no"
-    - name: root_password
+    - name: mariadb_root_password
       prompt: "Root Password"
       private: yes
       confirm: yes
@@ -26,6 +26,7 @@
     mariadb_packages:
       - mariadb-server
       - mariadb-client
+      - python-mysqldb
 
   pre_tasks:
     - name: "ansible-ad-hoc | TEST | install-mariadb.yml | gather_facts minimal"
@@ -45,19 +46,32 @@
       fail:
         msg: "ansible-ad-hoc/test/* are experimental/for testing only. user did not agree, aborting"
       when: "agree != 'yes' and agree != 'y'"
+
     - name: "ansible_facts"
       debug:
         msg: "{{ ansible_facts }}"
-    - name: "root_password"
-      debug:
-        msg: "{{ root_password }}"
 
-    # Add specified repository into sources list.
+    - name: "mariadb_root_password"
+      debug:
+        msg: "{{ mariadb_root_password }}"
+
     - name: "ansible-ad-hoc | TEST | install-mariadb.yml | sudo apt-key adv --recv-keys --keyserver ..."
       apt_key:
         keyserver: "{{ mariadb_apt_key_keyserver }}"
         id: "{{ mariadb_apt_key_id }}"
 
-    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | sudo apt install mariadb-server mariadb-client" 
+    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | sudo add-apt-repository ..."
+      apt_repository:
+        repo: "{{ mariadb_apt_repository }}"
+        state: present
+        update_cache: yes
+
+    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | sudo apt install {{ mariadb_packages }}"
       apt:
         name: "{{ mariadb_packages }}"
+
+    - name: "ansible-ad-hoc | TEST | install-mariadb.yml | set mariadb_root_password"
+      mysql_user:
+        user: root
+        password: "{{ mariadb_root_password }}"
+        host: localhost
