@@ -2,9 +2,9 @@
 # FILE:            {{ role_path }}/ad-hoc-alb/show-alb-hosts-facts.yml
 # LICENSE:         Public Domain
 
-#    ansible-playbook roles/ap-application-load-balancer/ad-hoc-alb/show-netstat-used-ports.yml -i hosts.yml
-#    ansible-playbook show-netstat-used-ports.yml -i hosts.yml
-#    ansible all -a "netstat -ntulp" -i hosts.yml
+#    ansible-playbook ad-hoc/info/show-ports-open.yml -i hosts
+#    ansible-playbook show-ports-open.yml -i hosts
+#    ansible all -a "netstat -ntulp" -i hosts
 
 - name: "ansible-ad-hoc | show-ports-open.yml"
   hosts: all

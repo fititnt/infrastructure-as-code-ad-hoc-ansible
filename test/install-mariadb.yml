@@ -1,8 +1,8 @@
 ---
 # LICENSE:         Public Domain
 
-#    ansible-playbook test/install-mariadb.yml -i hosts
-#    ansible-playbook test/install-mariadb.yml -i hosts --extra-vars="mariadb_root_password=PassWord"
+#    ansible-playbook ad-hoc/test/install-mariadb.yml -i hosts
+#    ansible-playbook ad-hoc/test/install-mariadb.yml -i hosts --extra-vars="mariadb_root_password=PassWord"
 
 - name: "ansible-ad-hoc | TEST | install-mariadb.yml"
   hosts: all

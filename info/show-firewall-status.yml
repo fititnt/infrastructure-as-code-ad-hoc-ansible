@@ -4,9 +4,8 @@
 
 # @TODO: make compatible with at least CentOS/RHEL
 
-#    ansible-playbook roles/ap-application-load-balancer/ad-hoc-alb/show-ufw-status.yml -i hosts.yml
-#    ansible-playbook show-ufw-status.yml -i hosts.yml
-#    ansible all -a "ufw status verbose" -i hosts.yml
+#    ansible-playbook ad-hoc/info/show-ufw-status.yml -i hosts
+#    ansible all -a "ufw status verbose" -i hosts
 
 - name: "ansible-ad-hoc | show-firewall-status.yml"
   hosts: all

@@ -1,7 +1,7 @@
 ---
 # LICENSE:         Public Domain
 
-#    ansible-playbook test/install-redis.yml -i hosts
+#    ansible-playbook ad-hoc/test/install-redis.yml -i hosts
 
 # If installing manually, check also:
 #   - https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04
