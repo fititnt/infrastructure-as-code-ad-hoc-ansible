@@ -115,7 +115,13 @@ This repository assumes you already have installed Ansible on your machine.
 
 #### How to install Ansible
 
-See <https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html>.
+- Use `pip` in your selected Python environment to install the Ansible package of your choice for the current user:
+
+`python3 -m pip install --user ansible`
+
+- You can test that Ansible is installed correctly by checking the version:
+
+`ansible --version`
 
 ### SSH access to remote machines
 Most ad-hoc playbooks will also require you be able to SSH into some remote
